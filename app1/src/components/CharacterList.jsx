@@ -5,6 +5,9 @@ import '../components/CharacterList.css';
 const CharacterList = ({ characters }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState('asc');
+  const [selectedSpecies, setSelectedSpecies] = useState([]);
+  const [selectedGender, setSelectedGender] = useState([]);
+  const [selectedOrigin, setSelectedOrigin] = useState([]);
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
@@ -14,8 +17,44 @@ const CharacterList = ({ characters }) => {
     setSortOrder(event.target.value);
   };
 
+  const handleCheckboxChange = (filterType, value) => {
+    let setter;
+    let selectedFilters;
+    if (filterType === 'species') {
+      setter = setSelectedSpecies;
+      selectedFilters = selectedSpecies;
+    } else if (filterType === 'gender') {
+      setter = setSelectedGender;
+      selectedFilters = selectedGender;
+    } else if (filterType === 'origin') {
+      setter = setSelectedOrigin;
+      selectedFilters = selectedOrigin;
+    }
+
+    if (selectedFilters.includes(value)) {
+      setter(selectedFilters.filter(item => item !== value));
+    } else {
+      setter([...selectedFilters, value]);
+    }
+  };
+
+  const handleFilterRemove = (filterType, value) => {
+    if (filterType === 'species') {
+      setSelectedSpecies(selectedSpecies.filter(item => item !== value));
+    } else if (filterType === 'gender') {
+      setSelectedGender(selectedGender.filter(item => item !== value));
+    } else if (filterType === 'origin') {
+      setSelectedOrigin(selectedOrigin.filter(item => item !== value));
+    }
+  };
+
   const filteredCharacters = characters
-    .filter((character) => character.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter((character) => 
+      character.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (selectedSpecies.length === 0 || selectedSpecies.includes(character.species)) &&
+      (selectedGender.length === 0 || selectedGender.includes(character.gender)) &&
+      (selectedOrigin.length === 0 || selectedOrigin.includes(character.origin.name))
+    )
     .sort((a, b) => sortOrder === 'asc' ? a.id - b.id : b.id - a.id);
 
   return (
@@ -25,25 +64,25 @@ const CharacterList = ({ characters }) => {
         <div>
           <h3>Species</h3>
           <ul>
-            <li><input type="checkbox" /> Human</li>
-            <li><input type="checkbox" /> Mytholog</li>
-            <li><input type="checkbox" /> Other Species...</li>
+            <li><input type="checkbox" onChange={() => handleCheckboxChange('species', 'Human')} /> Human</li>
+            <li><input type="checkbox" onChange={() => handleCheckboxChange('species', 'Mytholog')} /> Mytholog</li>
+            <li><input type="checkbox" onChange={() => handleCheckboxChange('species', 'Other Species')} /> Other Species...</li>
           </ul>
         </div>
         <div>
           <h3>Gender</h3>
           <ul>
-            <li><input type="checkbox" /> Male</li>
-            <li><input type="checkbox" /> Female</li>
+            <li><input type="checkbox" onChange={() => handleCheckboxChange('gender', 'Male')} /> Male</li>
+            <li><input type="checkbox" onChange={() => handleCheckboxChange('gender', 'Female')} /> Female</li>
           </ul>
         </div>
         <div>
           <h3>Origin</h3>
           <ul>
-            <li><input type="checkbox" /> Unknown</li>
-            <li><input type="checkbox" /> Post-Apocalyptic Earth</li>
-            <li><input type="checkbox" /> Nuptia 4</li>
-            <li><input type="checkbox" /> Other Origins...</li>
+            <li><input type="checkbox" onChange={() => handleCheckboxChange('origin', 'unknown')} /> Unknown</li>
+            <li><input type="checkbox" onChange={() => handleCheckboxChange('origin', 'Post-Apocalyptic Earth')} /> Post-Apocalyptic Earth</li>
+            <li><input type="checkbox" onChange={() => handleCheckboxChange('origin', 'Nuptia 4')} /> Nuptia 4</li>
+            <li><input type="checkbox" onChange={() => handleCheckboxChange('origin', 'Other Origins')} /> Other Origins...</li>
           </ul>
         </div>
       </div>
@@ -51,9 +90,15 @@ const CharacterList = ({ characters }) => {
         <div className="search-sort">
           <div className="selected-filters">
             <h2>Selected Filters</h2>
-            <span className="filter-tag">Human <button>X</button></span>
-            <br />
-            <span className="filter-tag">Nuptia 4 <button>X</button></span>
+            {selectedSpecies.map((filter, index) => (
+              <span key={index} className="filter-tag">{filter} <button onClick={() => handleFilterRemove('species', filter)}>X</button></span>
+            ))}
+            {selectedGender.map((filter, index) => (
+              <span key={index} className="filter-tag">{filter} <button onClick={() => handleFilterRemove('gender', filter)}>X</button></span>
+            ))}
+            {selectedOrigin.map((filter, index) => (
+              <span key={index} className="filter-tag">{filter} <button onClick={() => handleFilterRemove('origin', filter)}>X</button></span>
+            ))}
           </div>
           <div className="search">
             <input
@@ -65,9 +110,7 @@ const CharacterList = ({ characters }) => {
             <button>Search</button>
           </div>
           <div className="sort">
-            
             <select value={sortOrder} onChange={handleSortOrderChange}>
-            
               <option value="asc"> Ascending</option>
               <option value="desc"> Descending</option>
             </select>
@@ -84,3 +127,4 @@ const CharacterList = ({ characters }) => {
 };
 
 export default CharacterList;
+
